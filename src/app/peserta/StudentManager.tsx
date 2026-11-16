@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { InboxIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { InboxIcon, PlusIcon, SearchIcon, FileSpreadsheetIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { RowMenu } from "@/components/shared/RowMenu";
 import { tableCls, tableWrap, tdCls, thCls } from "@/components/shared/table";
 import { useApi } from "@/components/shared/useApi";
 import { useConfirm } from "@/components/shared/ConfirmDialog";
+import ImportDialog from "./ImportDialog";
 type Student={id:string;name:string;nis:string;nisn:string;archived:boolean};
 type Draft={name:string;nis:string;nisn:string};
 const blank=():Draft=>({name:"",nis:"",nisn:""});
@@ -22,7 +23,7 @@ const initials=(name:string)=>name.trim().split(/\s+/).slice(0,2).map(w=>w[0]?.t
 export default function StudentManager({students}:{students:Student[]}){
  const {request}=useApi(); const {confirm,dialog}=useConfirm();
  const [search,setSearch]=useState(""); const [filter,setFilter]=useState("all");
- const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Student|null>(null);
+ const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Student|null>(null); const [importOpen,setImportOpen]=useState(false);
  const [draft,setDraft]=useState<Draft>(blank()); const [busy,setBusy]=useState(false);
  const filtered=useMemo(()=>{const q=search.trim().toLocaleLowerCase("id-ID");return students.filter(s=>(filter==="all"||(filter==="archived"?s.archived:!s.archived))&&(!q||`${s.name} ${s.nis} ${s.nisn}`.toLocaleLowerCase("id-ID").includes(q)))},[students,search,filter]);
  function openAdd(){setEditing(null);setDraft(blank());setOpen(true)}
@@ -34,7 +35,7 @@ export default function StudentManager({students}:{students:Student[]}){
   <div className="mb-4 flex flex-wrap items-center gap-2">
    <div className="relative min-w-[220px] flex-1"><SearchIcon size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><Input className="pl-9" placeholder="Cari nama, NIS, atau NISN…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
    <SelectField aria-label="Filter status" className="w-44" value={filter} onValueChange={setFilter} options={[{value:"all",label:"Semua status"},{value:"active",label:"Tersedia"},{value:"archived",label:"Diarsipkan"}]}/>
-   <Button onClick={openAdd}><PlusIcon size={16}/> Tambah peserta</Button>
+   <Button variant="outline" onClick={()=>setImportOpen(true)}><FileSpreadsheetIcon size={16}/> Impor Excel</Button><Button onClick={openAdd}><PlusIcon size={16}/> Tambah peserta</Button>
   </div>
   <Card title="Daftar peserta" description={`${filtered.length} dari ${students.length} peserta ditampilkan`} bodyClassName="p-0">
    {filtered.length===0?<EmptyState icon={InboxIcon} title="Tidak ada peserta yang cocok" description="Ubah kata kunci pencarian atau filter status, atau tambahkan peserta baru melalui tombol di atas."/>:<div className={tableWrap}><table className={tableCls}><thead><tr><th className={thCls}>Peserta</th><th className={thCls}>NIS / NISN</th><th className={thCls}>Status</th><th className={thCls+" text-right"}>Aksi</th></tr></thead><tbody>{filtered.map(s=><tr key={s.id} className="hover:bg-slate-50/60"><td className={tdCls}><div className="flex items-center gap-3"><Avatar className="size-8 rounded-lg"><AvatarFallback className="rounded-lg bg-[color-mix(in_srgb,var(--brand)_12%,white)] text-[11px] font-bold text-[var(--brand)]">{initials(s.name)}</AvatarFallback></Avatar><span className="font-semibold text-slate-800">{s.name}</span></div></td><td className={tdCls}><div className="text-xs">{s.nis||"—"}<span className="block text-slate-400">{s.nisn||"—"}</span></div></td><td className={tdCls}><StatusBadge archived={s.archived}/></td><td className={tdCls}><div className="flex justify-end"><RowMenu onEdit={s.archived?undefined:()=>openEdit(s)} toggle={{label:s.archived?"Pulihkan":"Arsipkan",archived:s.archived,run:()=>toggle(s)}} onDelete={()=>remove(s)}/></div></td></tr>)}</tbody></table></div>}
@@ -51,5 +52,6 @@ export default function StudentManager({students}:{students:Student[]}){
    </form>
   </DialogContent></Dialog>
   {dialog}
+  <ImportDialog open={importOpen} onOpenChange={setImportOpen}/>
  </>;
 }
