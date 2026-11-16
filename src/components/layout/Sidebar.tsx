@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, GraduationCap, UsersRound, Settings2, Sparkles, DoorOpen, Timer, BookOpen, Activity, Printer } from "lucide-react";
+import { LayoutDashboard, CalendarDays, GraduationCap, UsersRound, Settings2, Sparkles, DoorOpen, Timer, BookOpen, Activity, Printer, School } from "lucide-react";
 const groups = [
  {label:"Menu utama",items:[{href:"/dashboard",label:"Dashboard",icon:LayoutDashboard}]},
- {label:"Data sekolah",items:[{href:"/periode-ujian",label:"Periode ujian",icon:CalendarDays},{href:"/kelas-jurusan",label:"Kelas & jurusan",icon:GraduationCap},{href:"/peserta",label:"Peserta",icon:UsersRound}]},
+ {label:"Data sekolah",items:[{href:"/periode-ujian",label:"Periode ujian",icon:CalendarDays},{href:"/kelas-jurusan",label:"Kelas & jurusan",icon:GraduationCap},{href:"/peserta",label:"Peserta",icon:UsersRound},{href:"/penempatan",label:"Penempatan kelas",icon:School}]},
  {label:"Pengaturan",items:[{href:"/pengaturan",label:"Tampilan & identitas",icon:Settings2}]},
 ];
 const soon = [
