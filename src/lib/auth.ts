@@ -1,8 +1,13 @@
-import { createHash, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { db } from "./db";
 export const COOKIE_NAME = "nusaexam_session";
 export function hashToken(token: string) { return createHash("sha256").update(token).digest("hex"); }
+export function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${hash}`;
+}
 export function verifyPassword(password: string, stored: string) {
   const [algorithm, salt, hash] = stored.split(":");
   if (algorithm !== "scrypt" || !salt || !hash || !/^[a-f0-9]{128}$/i.test(hash)) return false;
