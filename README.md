@@ -28,3 +28,10 @@ Cookie `secure` hanya aktif jika `COOKIE_SECURE=true` di environment. Pada devel
 ## Git dan server
 
 Jangan unggah `.env`, data siswa, soal asli, backup, media privat atau kredensial ke GitHub. Repository private tetap perlu perlindungan rahasia. Server dan komputer development harus memakai database dan `.env` terpisah. Instal dependensi dengan `npm ci` pada masing-masing mesin; jangan memindahkan `node_modules`. Belum ada panduan deployment produksi: jangan pasang tahap ini untuk ujian sungguhan.
+
+## Data demo & impor (pengembangan)
+
+- `npm run db:seed-demo` mengisi database pengembangan dengan data demo idempoten: tahun ajaran 2026/2027, periode DEMO PAS Ganjil, 4 jurusan, 8 kelas, 60 peserta, penempatan kelas, akun peserta (password seragam `demo12345`), 3 bank soal berisi soal DEMO, 2 tes berkomposisi multi-bank, pelaksanaan REGULER (besok 07:00-09:00, 90 menit) dan SUSULAN (lusa 10:00-12:00, 60 menit) beserta penugasannya. Aman dijalankan berulang; tidak menduplikasi data. Username contoh dicetak di akhir script.
+- Impor peserta: halaman Peserta → Impor Excel (template .xlsx tersedia di dialog).
+- Impor soal: halaman Bank soal & tes → pilih bank → Impor Word (.docx). Template 50 soal (kolom No merge vertikal, 5 pilihan jawaban, sel kuning tidak perlu diisi) tersedia di dialog; baris soal yang kosong otomatis dilewati. Rumus/simbol matematika (OMML) dikonversi menjadi TeX lalu dirender MathJax (mathjax-full, dibundel lokal) menjadi gambar SVG; tabel bersarang dibaca menjadi baris teks; gambar dan SVG rumus disimpan server ke folder media (env MEDIA_DIR, bawaan <app>/media/items) dan disajikan lewat /api/media/items. Teks soal menyimpan markdown ![gambar](url) atau URL polos (data lama); komponen shared/RichText merender keduanya sebagai gambar di daftar soal dan nanti di halaman ujian.
+- Jangan jalankan seeder pada database produksi; password demo bersifat publik.
