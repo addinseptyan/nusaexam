@@ -1,6 +1,44 @@
 "use client";
-import {FormEvent,useState} from "react";
-import {useRouter} from "next/navigation";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { PaletteIcon, RotateCcwIcon, SaveIcon, SparklesIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Card } from "@/components/shared/Card";
+import { Field } from "@/components/shared/Field";
 type Values={appName:string;schoolName:string;description:string;primaryColor:string;sidebarColor:string};
-const defaultColors={primaryColor:"#236b55",sidebarColor:"#17343a"};
-export default function SettingsForm({initial}:{initial:Values}){const [v,setV]=useState(initial),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);const router=useRouter();function set(k:keyof Values,value:string){setV(x=>({...x,[k]:value}))}async function save(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");try{const r=await fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)});const j=await r.json();setMessage(r.ok?"Pengaturan berhasil disimpan.":j.error||"Gagal menyimpan.");if(r.ok)router.refresh()}catch{setMessage("Tidak dapat menghubungi server.")}finally{setBusy(false)}}return <div className="settings-grid"><form className="settings-card form" onSubmit={save}><h2>Identitas</h2><label>Nama aplikasi<input value={v.appName} required maxLength={60} onChange={e=>set("appName",e.target.value)}/></label><label>Nama sekolah<input value={v.schoolName} required maxLength={120} onChange={e=>set("schoolName",e.target.value)}/></label><label>Deskripsi singkat<input value={v.description} maxLength={160} onChange={e=>set("description",e.target.value)}/></label><h2>Palet warna</h2><div className="color-grid"><label>Warna utama<input type="color" value={v.primaryColor} onChange={e=>set("primaryColor",e.target.value)}/><small>{v.primaryColor}</small></label><label>Warna sidebar<input type="color" value={v.sidebarColor} onChange={e=>set("sidebarColor",e.target.value)}/><small>{v.sidebarColor}</small></label></div><p className="sub">Pilih warna gelap agar teks putih tetap terbaca. Pemeriksaan kontras otomatis belum tersedia.</p><div className="actions"><button className="button" style={{background:v.primaryColor}} disabled={busy}>{busy?"Menyimpan…":"Simpan pengaturan"}</button><button className="secondary" type="button" onClick={()=>setV(x=>({...x,...defaultColors}))}>Warna bawaan</button></div>{message&&<div role="status" className="message">{message}</div>}</form><div className="settings-card preview"><h2>Pratinjau</h2><p className="sub">Contoh tampilan sebelum disimpan.</p><div className="preview-sidebar" style={{background:v.sidebarColor}}><span className="mark">✳</span><strong>{v.appName}</strong><small>{v.description}</small><div>▦ &nbsp; Dashboard</div></div><div className="preview-body"><strong>{v.schoolName}</strong><p>Contoh tombol utama</p><span className="button" style={{background:v.primaryColor}}>Simpan</span></div><p className="sub">Logo, kop, dan pengaturan dokumen belum tersedia di tahap ini.</p></div></div>}
+const defaults={primaryColor:"#214ed8",sidebarColor:"#122a3d"};
+export default function SettingsForm({initial}:{initial:Values}){
+ const router=useRouter();
+ const [v,setV]=useState(initial); const [busy,setBusy]=useState(false);
+ function set(k:keyof Values,value:string){setV(x=>({...x,[k]:value}))}
+ async function save(e:FormEvent){e.preventDefault();if(busy)return;setBusy(true);try{const r=await fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(v)});const j=await r.json().catch(()=>({}));if(!r.ok){toast.error(j.error||"Gagal menyimpan pengaturan.");return}router.refresh();toast.success("Pengaturan berhasil disimpan.")}catch{toast.error("Tidak dapat menghubungi server.")}finally{setBusy(false)}}
+ return <form className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]" onSubmit={save}>
+  <Card title="Identitas aplikasi" description="Nama dan identitas sekolah tampil di sidebar, halaman login, dan dokumen." bodyClassName="grid gap-4 p-5">
+   <div className="grid gap-4 sm:grid-cols-2">
+    <Field label="Nama aplikasi"><Input value={v.appName} required maxLength={60} onChange={e=>set("appName",e.target.value)}/></Field>
+    <Field label="Nama sekolah"><Input value={v.schoolName} required maxLength={120} onChange={e=>set("schoolName",e.target.value)}/></Field>
+   </div>
+   <Field label="Deskripsi singkat" hint="Maks. 160 karakter"><Input value={v.description} maxLength={160} onChange={e=>set("description",e.target.value)}/></Field>
+   <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+    <p className="text-[11px] leading-relaxed text-slate-400">Warna utama dipakai untuk tombol dan elemen aktif; warna sidebar untuk panel navigasi.</p>
+    <Button type="submit" disabled={busy}><SaveIcon size={15}/> {busy?"Menyimpan…":"Simpan pengaturan"}</Button>
+   </div>
+  </Card>
+  <Card title="Warna & pratinjau" description="Perubahan terlihat setelah disimpan." bodyClassName="grid gap-4 p-5">
+   <div className="grid grid-cols-2 gap-3">
+    <Field label="Warna utama"><span className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-2"><input type="color" aria-label="Warna utama" className="size-6 cursor-pointer rounded border-0 bg-transparent p-0" value={v.primaryColor} onChange={e=>set("primaryColor",e.target.value)}/><span className="text-xs font-semibold uppercase text-slate-500">{v.primaryColor}</span></span></Field>
+    <Field label="Warna sidebar"><span className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-2"><input type="color" aria-label="Warna sidebar" className="size-6 cursor-pointer rounded border-0 bg-transparent p-0" value={v.sidebarColor} onChange={e=>set("sidebarColor",e.target.value)}/><span className="text-xs font-semibold uppercase text-slate-500">{v.sidebarColor}</span></span></Field>
+   </div>
+   <div className="overflow-hidden rounded-xl border border-slate-200">
+    <div className="flex items-center gap-2 p-3" style={{background:v.sidebarColor}}><span className="grid size-7 place-items-center rounded-lg bg-white/15 text-white"><SparklesIcon size={14}/></span><span className="min-w-0"><strong className="block truncate text-xs text-white">{v.appName}</strong><small className="block truncate text-[10px] text-white/60">{v.description}</small></span></div>
+    <div className="grid gap-2 bg-white p-3"><span className="rounded-md px-3 py-1.5 text-center text-xs font-semibold text-white" style={{background:v.primaryColor}}>Tombol utama</span><span className="text-[11px] text-slate-400">{v.schoolName}</span></div>
+   </div>
+   <div className="flex items-center justify-between gap-2">
+    <p className="flex items-center gap-1.5 text-[11px] text-slate-400"><PaletteIcon size={13}/> Pilih warna gelap agar teks putih terbaca.</p>
+    <Button type="button" variant="outline" size="sm" onClick={()=>setV(x=>({...x,...defaults}))}><RotateCcwIcon size={14}/> Warna bawaan</Button>
+   </div>
+  </Card>
+ </form>;
+}

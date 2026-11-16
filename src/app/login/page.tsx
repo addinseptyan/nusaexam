@@ -1,10 +1,19 @@
 import { redirect } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import LoginForm from "./LoginForm";
 export const dynamic = "force-dynamic";
-export default async function LoginPage() {
+export default async function LoginPage(){
  if (await getCurrentUser()) redirect("/dashboard");
- const settings = await getSettings();
- return <main className="login-wrap"><section className="login-card"><div className="brand"><span className="mark">✳</span><span>{settings.appName}<small>{settings.description}</small></span></div><h1>Selamat datang kembali.</h1><p className="sub">Masuk sebagai administrator untuk melanjutkan.</p><LoginForm color={settings.primaryColor}/><div className="foot">{settings.schoolName}<br/>Tahap pengembangan · bukan untuk ujian sesungguhnya</div></section></main>;
+ const s=await getSettings();
+ return <main className="login-shell" style={{"--brand":s.primaryColor,"--side":s.sidebarColor} as React.CSSProperties}>
+  <section className="login-card2">
+   <div className="login-brand"><span className="login-logo"><Sparkles size={18}/></span><span className="login-brand-copy"><strong>{s.appName}</strong><small>{s.description}</small></span></div>
+   <h1 className="text-[22px] font-bold tracking-tight text-slate-900">Selamat datang kembali</h1>
+   <p className="mt-1 text-[13px] text-slate-500">Masuk sebagai administrator untuk melanjutkan.</p>
+   <LoginForm/>
+   <div className="mt-6 border-t border-slate-100 pt-4 text-[11px] leading-relaxed text-slate-400">{s.schoolName}<br/>Tahap pengembangan · bukan untuk ujian sesungguhnya</div>
+  </section>
+ </main>;
 }
