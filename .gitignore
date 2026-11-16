@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+*.sql
+*.dump
+*.backup
+uploads/
+# File migrasi Prisma adalah bagian dari kode proyek
+!prisma/migrations/**/migration.sql

@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  sessions     Session[]
+}
+model Session {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+}
+model AppSettings {
+  id            Int      @id @default(1)
+  schoolName    String   @default("SMKS Nusantara Banyuwangi")
+  appName       String   @default("NusaExam")
+  description   String   @default("Sistem ujian sekolah")
+  primaryColor  String   @default("#236b55")
+  sidebarColor  String   @default("#17343a")
+  updatedAt     DateTime @updatedAt
+}
