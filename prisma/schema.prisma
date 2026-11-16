@@ -58,6 +58,7 @@ model ExamPeriod {
   @@unique([academicYearId, semester, name])
   @@index([startDate, endDate])
   accounts ExamAccount[]
+  executions TestExecution[]
 }
 
 enum Semester {
@@ -104,6 +105,7 @@ model Student {
   enrollments Enrollment[]
   examAccounts ExamAccount[]
   @@index([name])
+  testAssignments TestAssignment[]
 }
 model ExamAccount {
   id                String     @id @default(cuid())
@@ -136,4 +138,88 @@ model Enrollment {
   @@unique([studentId, classroomId])
   @@unique([studentId, academicYearId])
   @@index([classroomId])
+}
+
+enum ExecutionKind {
+  REGULER
+  SUSULAN
+  REMIDI
+}
+
+model Test {
+  id          String          @id @default(cuid())
+  title       String          @unique
+  description String?
+  archivedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  banks       TestBank[]
+  executions  TestExecution[]
+}
+
+model QuestionBank {
+  id          String     @id @default(cuid())
+  title       String    @unique
+  subject     String
+  description String?
+  archivedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  items       TestItem[]
+  tests       TestBank[]
+}
+
+model TestBank {
+  id        String       @id @default(cuid())
+  testId    String
+  test      Test         @relation(fields: [testId], references: [id], onDelete: Cascade)
+  bankId    String
+  bank      QuestionBank @relation(fields: [bankId], references: [id], onDelete: Restrict)
+  count     Int
+  createdAt DateTime     @default(now())
+  @@unique([testId, bankId])
+}
+
+model TestItem {
+  id           String       @id @default(cuid())
+  bankId       String
+  bank         QuestionBank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  order        Int
+  question     String
+  options      String[]
+  correctIndex Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  @@unique([bankId, order])
+}
+
+model TestExecution {
+  id              String           @id @default(cuid())
+  testId          String
+  test            Test             @relation(fields: [testId], references: [id], onDelete: Restrict)
+  examPeriodId    String
+  examPeriod      ExamPeriod       @relation(fields: [examPeriodId], references: [id], onDelete: Restrict)
+  kind            ExecutionKind
+  roomLabel       String           @default("Ruang 1")
+  startAt         DateTime
+  endAt           DateTime
+  durationMinutes Int
+  shuffleQuestions Boolean  @default(true)
+  shuffleOptions   Boolean  @default(true)
+  archivedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  assignments     TestAssignment[]
+  @@index([examPeriodId])
+}
+
+model TestAssignment {
+  id          String        @id @default(cuid())
+  executionId String
+  execution   TestExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  @@unique([executionId, studentId])
+  @@index([studentId])
 }

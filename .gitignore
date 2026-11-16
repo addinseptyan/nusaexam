@@ -11,3 +11,5 @@ coverage/
 uploads/
 # File migrasi Prisma adalah bagian dari kode proyek
 !prisma/migrations/**/migration.sql
+# Media soal (gambar hasil impor) disimpan lokal, tidak masuk repo
+/media/

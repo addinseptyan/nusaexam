@@ -10,7 +10,7 @@ export function Combobox({options,value,onChange,placeholder="Pilih…",searchPl
  const [open,setOpen]=useState(false);
  const selected=options.find(o=>o.value===value);
  return <Popover open={open} onOpenChange={setOpen}>
-  <PopoverTrigger asChild><Button type="button" variant="outline" role="combobox" aria-expanded={open} disabled={disabled} className={cn("w-full justify-between font-normal",!selected&&"text-slate-400")}>{selected?selected.label:placeholder}<ChevronsUpDownIcon size={14} className="ml-2 shrink-0 text-slate-400"/></Button></PopoverTrigger>
+  <PopoverTrigger asChild><Button type="button" variant="outline" role="combobox" aria-expanded={open} disabled={disabled} className={cn("w-full justify-between font-normal",!selected&&"text-slate-400")}><span className="truncate">{selected?selected.label:placeholder}</span><ChevronsUpDownIcon size={14} className="ml-2 shrink-0 text-slate-400"/></Button></PopoverTrigger>
   <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
    <Command>
     <CommandInput placeholder={searchPlaceholder}/>
