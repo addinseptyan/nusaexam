@@ -1,17 +1,68 @@
 "use client";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-type Year = {id:string;label:string};
-type Period = {id:string;name:string;description:string;semester:"GANJIL"|"GENAP";academicYearId:string;academicYearLabel:string;startDate:string;endDate:string;archived:boolean};
-type Draft = {name:string;description:string;semester:"GANJIL"|"GENAP";academicYearId:string;startDate:string;endDate:string};
+import { CalendarDaysIcon, CalendarPlusIcon, InboxIcon, PlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { Card } from "@/components/shared/Card";
+import { Field } from "@/components/shared/Field";
+import { SelectField } from "@/components/shared/SelectField";
+import { DatePicker } from "@/components/shared/DatePicker";
+import { StatusBadge } from "@/components/shared/StatusBadge";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { RowMenu } from "@/components/shared/RowMenu";
+import { tableCls, tableWrap, tdCls, thCls } from "@/components/shared/table";
+import { useApi } from "@/components/shared/useApi";
+import { useConfirm } from "@/components/shared/ConfirmDialog";
+type Year={id:string;label:string};
+type Period={id:string;name:string;description:string;semester:"GANJIL"|"GENAP";academicYearId:string;academicYearLabel:string;startDate:string;endDate:string;archived:boolean};
+type Draft={name:string;description:string;semester:string;academicYearId:string;startDate:string;endDate:string};
 const empty=(yearId:string):Draft=>({name:"",description:"",semester:"GANJIL",academicYearId:yearId,startDate:"",endDate:""});
 const fmt=(date:string)=>{const [y,m,d]=date.split("-");return `${d}/${m}/${y}`};
-export default function PeriodManager({years,periods,color}:{years:Year[];periods:Period[];color:string}){
-  const router=useRouter(); const [yearLabel,setYearLabel]=useState(""); const [draft,setDraft]=useState<Draft>(empty(years[0]?.id||"")); const [editing,setEditing]=useState<string|null>(null); const [busy,setBusy]=useState(false); const [message,setMessage]=useState("");
-  async function send(url:string,method:string,data:unknown){setBusy(true);setMessage("");try{const r=await fetch(url,{method,headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});const j=await r.json();if(!r.ok){setMessage(j.error||"Proses gagal.");return false}router.refresh();return true}catch{setMessage("Tidak dapat menghubungi server.");return false}finally{setBusy(false)}}
-  async function addYear(e:FormEvent){e.preventDefault();if(await send("/api/academic-years","POST",{label:yearLabel})){setYearLabel("");setMessage("Tahun ajaran berhasil ditambahkan. Pilih tahun tersebut pada formulir periode.")}}
-  async function savePeriod(e:FormEvent){e.preventDefault();const ok=await send("/api/exam-periods",editing?"PATCH":"POST",editing?{...draft,id:editing,action:"edit"}:draft);if(ok){setEditing(null);setDraft(empty(years[0]?.id||""));setMessage(editing?"Periode berhasil diperbarui.":"Periode berhasil ditambahkan.")}}
-  function edit(p:Period){setEditing(p.id);setDraft({name:p.name,description:p.description,semester:p.semester,academicYearId:p.academicYearId,startDate:p.startDate,endDate:p.endDate});setMessage("");document.getElementById("form-periode")?.scrollIntoView({behavior:"smooth"})}
-  async function setArchive(p:Period){if(!window.confirm(`${p.archived?"Pulihkan":"Arsipkan"} periode “${p.name}”?`))return;if(await send("/api/exam-periods","PATCH",{id:p.id,action:p.archived?"restore":"archive"})){if(editing===p.id){setEditing(null);setDraft(empty(years[0]?.id||""))}setMessage(p.archived?"Periode berhasil dipulihkan.":"Periode berhasil diarsipkan.")}}
-  return <><div className="banner period-banner"><strong>Langkah awal administrasi</strong><p>Buat tahun ajaran terlebih dahulu, kemudian tambahkan periode. Jadwal, peserta, dan sesi belum tersedia pada tahap ini.</p></div>{message&&<div className="message" role="status">{message}</div>}<div className="period-layout"><div className="period-forms"><form className="settings-card form" onSubmit={addYear}><h2>Tahun ajaran</h2><label>Tambah tahun ajaran<input placeholder="Contoh: 2026/2027" value={yearLabel} onChange={e=>setYearLabel(e.target.value)} pattern="[0-9]{4}/[0-9]{4}" maxLength={9} required/></label><button className="secondary" disabled={busy}>＋ Tambah tahun ajaran</button><small className="sub">{years.length ? `Tersedia: ${years.map(y=>y.label).join(", ")}` : "Belum ada tahun ajaran."}</small></form><form id="form-periode" className="settings-card form" onSubmit={savePeriod}><h2>{editing?"Ubah periode":"Tambah periode"}</h2><label>Nama periode<input required maxLength={100} placeholder="Contoh: Ujian Semester Ganjil" value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/></label><label>Tahun ajaran<select required value={draft.academicYearId} onChange={e=>setDraft({...draft,academicYearId:e.target.value})}><option value="">Pilih tahun ajaran</option>{years.map(y=><option key={y.id} value={y.id}>{y.label}</option>)}</select></label><label>Semester<select value={draft.semester} onChange={e=>setDraft({...draft,semester:e.target.value as Draft["semester"]})}><option value="GANJIL">Ganjil</option><option value="GENAP">Genap</option></select></label><div className="date-grid"><label>Tanggal mulai<input type="date" required value={draft.startDate} onChange={e=>setDraft({...draft,startDate:e.target.value})}/></label><label>Tanggal selesai<input type="date" required min={draft.startDate} value={draft.endDate} onChange={e=>setDraft({...draft,endDate:e.target.value})}/></label></div><label>Deskripsi <span className="optional">Opsional</span><textarea maxLength={500} rows={3} value={draft.description} onChange={e=>setDraft({...draft,description:e.target.value})}/></label><div className="actions"><button className="button" style={{background:color}} disabled={busy || !years.length}>{editing?"Simpan perubahan":"Tambah periode"}</button>{editing&&<button className="secondary" type="button" onClick={()=>{setEditing(null);setDraft(empty(years[0]?.id||""))}}>Batal</button>}</div></form></div><div className="settings-card period-list"><div className="period-heading"><div><h2>Daftar periode</h2><p className="sub">{periods.length} periode tercatat</p></div></div>{periods.length===0?<p className="empty">Belum ada periode ujian. Tambahkan melalui formulir di samping.</p>:<div className="table-scroll"><table className="period-table"><thead><tr><th>Periode</th><th>Waktu</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{periods.map(p=><tr key={p.id}><td><strong>{p.name}</strong><small>{p.academicYearLabel} · {p.semester==="GANJIL"?"Ganjil":"Genap"}</small>{p.description&&<small>{p.description}</small>}</td><td>{fmt(p.startDate)}<br/><span className="sub">s.d. {fmt(p.endDate)}</span></td><td><span className={p.archived?"status archived":"status"}>{p.archived?"Diarsipkan":"Tersedia"}</span></td><td><div className="row-actions">{!p.archived&&<button type="button" onClick={()=>edit(p)} disabled={busy}>Ubah</button>}<button type="button" onClick={()=>setArchive(p)} disabled={busy}>{p.archived?"Pulihkan":"Arsipkan"}</button></div></td></tr>)}</tbody></table></div>}<p className="sub period-hint">Status “Tersedia” berarti belum diarsipkan, bukan berarti jadwal ujian sedang berlangsung.</p></div></div></>;
+export default function PeriodManager({years,periods}:{years:Year[];periods:Period[]}){
+ const {request}=useApi(); const {confirm,dialog}=useConfirm();
+ const [yearLabel,setYearLabel]=useState(""); const [yearBusy,setYearBusy]=useState(false);
+ const [open,setOpen]=useState(false); const [editing,setEditing]=useState<Period|null>(null);
+ const [draft,setDraft]=useState<Draft>(empty(years[0]?.id||"")); const [busy,setBusy]=useState(false);
+ const yearOptions=years.map(y=>({value:y.id,label:y.label}));
+ async function addYear(e:FormEvent){e.preventDefault();if(yearBusy)return;setYearBusy(true);const ok=await request("/api/academic-years","POST",{label:yearLabel});setYearBusy(false);if(ok){setYearLabel("");toast.success("Tahun ajaran ditambahkan. Pilih tahun tersebut pada formulir periode.")}}
+ function openAdd(){setEditing(null);setDraft(empty(years[0]?.id||""));setOpen(true)}
+ function openEdit(p:Period){setEditing(p);setDraft({name:p.name,description:p.description,semester:p.semester,academicYearId:p.academicYearId,startDate:p.startDate,endDate:p.endDate});setOpen(true)}
+ async function save(){if(busy)return;setBusy(true);const ok=await request("/api/exam-periods",editing?"PATCH":"POST",editing?{...draft,id:editing.id,action:"edit"}:draft);setBusy(false);if(ok){setOpen(false);toast.success(editing?"Periode berhasil diperbarui.":"Periode ujian baru berhasil ditambahkan.")}}
+ async function toggle(p:Period){const yes=await confirm(p.archived?"Pulihkan periode":"Arsipkan periode",`${p.archived?"Periode akan kembali berstatus tersedia.":"Periode tidak muncul pada daftar tersedia, tetapi datanya tetap tersimpan."} Lanjutkan untuk “${p.name}”?`,{confirmLabel:p.archived?"Pulihkan":"Arsipkan"});if(!yes)return;if(await request("/api/exam-periods","PATCH",{id:p.id,action:p.archived?"restore":"archive"}))toast.success(p.archived?"Periode berhasil dipulihkan.":"Periode berhasil diarsipkan.")}
+ async function remove(p:Period){const yes=await confirm("Hapus permanen",`Periode “${p.name}” akan dihapus permanen dan tidak dapat dipulihkan. Gunakan arsip jika hanya ingin menyembunyikannya dari daftar.`,{confirmLabel:"Hapus permanen",destructive:true});if(!yes)return;if(await request("/api/exam-periods","DELETE",{id:p.id}))toast.success("Periode berhasil dihapus permanen.")}
+ return <>
+  <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+   <div className="grid content-start gap-4">
+    <Card title="Tahun ajaran" description="Dasar pengelompokan periode dan kelas." bodyClassName="p-4">
+     <form className="flex gap-2" onSubmit={addYear}><Input placeholder="Contoh: 2026/2027" pattern="[0-9]{4}/[0-9]{4}" maxLength={9} required value={yearLabel} onChange={e=>setYearLabel(e.target.value)}/><Button type="submit" variant="outline" size="icon" disabled={yearBusy} aria-label="Tambah tahun ajaran"><PlusIcon size={15}/></Button></form>
+     <div className="mt-3 flex flex-wrap gap-1.5">{years.length?years.map(y=><span key={y.id} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">{y.label}</span>):<span className="text-xs text-slate-400">Belum ada tahun ajaran.</span>}</div>
+    </Card>
+    <Card bodyClassName="p-4" className="border-transparent bg-[color-mix(in_srgb,var(--brand)_6%,white)]">
+     <div className="flex gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-[var(--brand)] shadow-sm"><CalendarDaysIcon size={17}/></span><p className="text-xs leading-relaxed text-slate-600">Buat tahun ajaran terlebih dahulu, lalu tambahkan periode ujian. Jadwal, peserta, dan sesi disusun pada tahap penjadwalan.</p></div>
+    </Card>
+   </div>
+   <Card title="Daftar periode" description={`${periods.length} periode tercatat`} actions={<Button size="sm" onClick={openAdd} disabled={!years.length}><CalendarPlusIcon size={15}/> Tambah periode</Button>} bodyClassName="p-0">
+    {periods.length===0?<EmptyState icon={InboxIcon} title="Belum ada periode ujian" description={years.length?"Tambahkan periode seperti Ujian Semester Ganjil melalui tombol di atas.":"Tambahkan tahun ajaran terlebih dahulu pada panel kiri."}/>:<div className={tableWrap}><table className={tableCls}><thead><tr><th className={thCls}>Periode</th><th className={thCls}>Waktu pelaksanaan</th><th className={thCls}>Status</th><th className={thCls+" text-right"}>Aksi</th></tr></thead><tbody>{periods.map(p=><tr key={p.id} className="hover:bg-slate-50/60"><td className={tdCls}><strong className="font-semibold text-slate-800">{p.name}</strong><span className="block text-xs text-slate-500">{p.academicYearLabel} · {p.semester==="GANJIL"?"Ganjil":"Genap"}</span>{p.description&&<span className="block text-xs text-slate-400">{p.description}</span>}</td><td className={tdCls+" text-xs"}>{fmt(p.startDate)}<span className="block text-slate-400">s.d. {fmt(p.endDate)}</span></td><td className={tdCls}><StatusBadge archived={p.archived}/></td><td className={tdCls}><div className="flex justify-end"><RowMenu onEdit={p.archived?undefined:()=>openEdit(p)} toggle={{label:p.archived?"Pulihkan":"Arsipkan",archived:p.archived,run:()=>toggle(p)}} onDelete={()=>remove(p)}/></div></td></tr>)}</tbody></table></div>}
+   </Card>
+  </div>
+  <Dialog open={open} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>{editing?"Ubah periode":"Tambah periode"}</DialogTitle><DialogDescription>Periode mengelompokkan kegiatan ujian dalam satu tahun ajaran dan semester.</DialogDescription></DialogHeader>
+   <form className="grid gap-4" onSubmit={e=>{e.preventDefault();save()}}>
+    <Field label="Nama periode"><Input required maxLength={100} placeholder="Contoh: Ujian Semester Ganjil" value={draft.name} onChange={e=>setDraft({...draft,name:e.target.value})}/></Field>
+    <div className="grid gap-4 sm:grid-cols-2">
+     <SelectField label="Tahun ajaran" value={draft.academicYearId} onValueChange={v=>setDraft({...draft,academicYearId:v})} options={yearOptions} placeholder="Pilih tahun"/>
+     <SelectField label="Semester" value={draft.semester} onValueChange={v=>setDraft({...draft,semester:v})} options={[{value:"GANJIL",label:"Ganjil"},{value:"GENAP",label:"Genap"}]}/>
+    </div>
+    <div className="grid gap-4 sm:grid-cols-2">
+     <Field label="Tanggal mulai"><DatePicker value={draft.startDate} onChange={v=>setDraft({...draft,startDate:v,endDate:draft.endDate&&draft.endDate<v?"":draft.endDate})} placeholder="Pilih tanggal mulai"/></Field>
+     <Field label="Tanggal selesai"><DatePicker value={draft.endDate} min={draft.startDate||undefined} onChange={v=>setDraft({...draft,endDate:v})} placeholder="Pilih tanggal selesai"/></Field>
+    </div>
+    <Field label="Deskripsi" hint="Opsional"><Textarea maxLength={500} rows={3} value={draft.description} onChange={e=>setDraft({...draft,description:e.target.value})}/></Field>
+    <DialogFooter><Button type="button" variant="outline" onClick={()=>setOpen(false)}>Batal</Button><Button type="submit" disabled={busy}>{busy?"Menyimpan…":editing?"Simpan perubahan":"Tambah periode"}</Button></DialogFooter>
+   </form>
+  </DialogContent></Dialog>
+  {dialog}
+ </>;
 }

@@ -54,3 +54,16 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   } catch (e) { return errorResult(e); }
 }
+
+export async function DELETE(request:Request){
+ if(!isSameOrigin(request))return NextResponse.json({error:"Permintaan ditolak."},{status:403});
+ if(!(await getCurrentUser()))return NextResponse.json({error:"Silakan login kembali."},{status:401});
+ let b:{id?:unknown};
+ try{b=await request.json()}catch{return NextResponse.json({error:"Data tidak valid."},{status:400})}
+ if(typeof b.id!=="string"||!b.id||b.id.length>100)return NextResponse.json({error:"Periode tidak valid."},{status:400});
+ try{
+  const deleted=await db.examPeriod.deleteMany({where:{id:b.id}});
+  if(!deleted.count)return NextResponse.json({error:"Periode tidak ditemukan atau sudah dihapus."},{status:404});
+  return NextResponse.json({ok:true});
+ }catch{return NextResponse.json({error:"Periode masih digunakan oleh data lain sehingga tidak dapat dihapus."},{status:409})}
+}

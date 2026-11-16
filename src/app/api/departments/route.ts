@@ -42,3 +42,18 @@ export async function PATCH(request:Request){
   return NextResponse.json({error:"Tindakan tidak valid."},{status:400});
  }catch(e){return mutationError(e,DUPLICATE)}
 }
+
+export async function DELETE(request:Request){
+ if(!isSameOrigin(request))return NextResponse.json({error:"Permintaan ditolak."},{status:403});
+ if(!(await getCurrentUser()))return NextResponse.json({error:"Silakan login kembali."},{status:401});
+ let b:{id?:unknown};
+ try{b=await request.json()}catch{return NextResponse.json({error:"Data tidak valid."},{status:400})}
+ if(typeof b.id!=="string"||!b.id||b.id.length>100)return NextResponse.json({error:"Jurusan tidak valid."},{status:400});
+ const used=await db.classroom.count({where:{departmentId:b.id}});
+ if(used>0)return NextResponse.json({error:"Jurusan tidak dapat dihapus permanen karena masih memiliki kelas. Hapus kelasnya terlebih dahulu."},{status:409});
+ try{
+  const deleted=await db.department.deleteMany({where:{id:b.id}});
+  if(!deleted.count)return NextResponse.json({error:"Jurusan tidak ditemukan atau sudah dihapus."},{status:404});
+  return NextResponse.json({ok:true});
+ }catch{return NextResponse.json({error:"Jurusan masih digunakan oleh data lain sehingga tidak dapat dihapus."},{status:409})}
+}

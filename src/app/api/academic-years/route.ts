@@ -22,3 +22,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Tidak dapat menyimpan tahun ajaran." }, { status: 500 });
   }
 }
+
+export async function DELETE(request:Request){
+ if(!isSameOrigin(request))return NextResponse.json({error:"Permintaan ditolak."},{status:403});
+ if(!(await getCurrentUser()))return NextResponse.json({error:"Silakan login kembali."},{status:401});
+ let b:{id?:unknown};
+ try{b=await request.json()}catch{return NextResponse.json({error:"Data tidak valid."},{status:400})}
+ if(typeof b.id!=="string"||!b.id||b.id.length>100)return NextResponse.json({error:"Tahun ajaran tidak valid."},{status:400});
+ const used=await db.examPeriod.count({where:{academicYearId:b.id}})+await db.classroom.count({where:{academicYearId:b.id}});
+ if(used>0)return NextResponse.json({error:"Tahun ajaran tidak dapat dihapus permanen karena masih memiliki periode atau kelas. Hapus data terkait terlebih dahulu."},{status:409});
+ try{
+  const deleted=await db.academicYear.deleteMany({where:{id:b.id}});
+  if(!deleted.count)return NextResponse.json({error:"Tahun ajaran tidak ditemukan atau sudah dihapus."},{status:404});
+  return NextResponse.json({ok:true});
+ }catch{return NextResponse.json({error:"Tahun ajaran masih digunakan oleh data lain sehingga tidak dapat dihapus."},{status:409})}
+}
