@@ -57,6 +57,7 @@ model ExamPeriod {
 
   @@unique([academicYearId, semester, name])
   @@index([startDate, endDate])
+  accounts ExamAccount[]
 }
 
 enum Semester {
@@ -101,8 +102,27 @@ model Student {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   enrollments Enrollment[]
+  examAccounts ExamAccount[]
   @@index([name])
 }
+model ExamAccount {
+  id                String     @id @default(cuid())
+  examPeriodId      String
+  examPeriod        ExamPeriod @relation(fields: [examPeriodId], references: [id], onDelete: Cascade)
+  studentId         String
+  student           Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  participantNumber String
+  username          String
+  usernameKey       String
+  passwordHash      String
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  @@unique([examPeriodId, participantNumber])
+  @@unique([examPeriodId, usernameKey])
+  @@unique([studentId, examPeriodId])
+  @@index([examPeriodId])
+}
+
 model Enrollment {
   id             String       @id @default(cuid())
   studentId      String
