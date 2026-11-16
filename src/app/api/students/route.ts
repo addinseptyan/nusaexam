@@ -3,14 +3,8 @@ import { getCurrentUser, isSameOrigin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { mutationError, readBody } from "@/lib/academic-errors";
 
+import { parseStudentFields as fields } from "@/lib/students";
 const DUPLICATE = "NIS atau NISN sudah digunakan oleh peserta lain, termasuk peserta yang diarsipkan.";
-function fields(body: Record<string, unknown>) {
- const name = typeof body.name === "string" ? body.name.trim().replace(/\s+/g, " ") : "";
- const nis = typeof body.nis === "string" ? body.nis.trim() : "";
- const nisn = typeof body.nisn === "string" ? body.nisn.trim() : "";
- if (!name || name.length > 120 || nis.length > 32 || /[\u0000-\u001f\u007f]/.test(nis) || (nisn && !/^\d{10}$/.test(nisn))) return null;
- return { name, nis: nis || null, nisKey: nis ? nis.normalize("NFKC").toUpperCase() : null, nisn: nisn || null };
-}
 export async function POST(request: Request) {
  if (!isSameOrigin(request)) return NextResponse.json({ error: "Permintaan ditolak." }, { status: 403 });
  if (!(await getCurrentUser())) return NextResponse.json({ error: "Silakan login kembali." }, { status: 401 });
