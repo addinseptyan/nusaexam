@@ -88,3 +88,15 @@ model Classroom {
   @@unique([academicYearId, nameKey])
   @@index([departmentId])
 }
+
+model Student {
+  id          String    @id @default(cuid())
+  name        String
+  nis         String?
+  nisKey      String?   @unique
+  nisn        String?   @unique
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@index([name])
+}
