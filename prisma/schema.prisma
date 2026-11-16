@@ -39,6 +39,7 @@ model AcademicYear {
   updatedAt DateTime     @updatedAt
   periods   ExamPeriod[]
   classrooms Classroom[]
+  enrollments Enrollment[]
 }
 
 model ExamPeriod {
@@ -87,6 +88,7 @@ model Classroom {
   updatedAt      DateTime     @updatedAt
   @@unique([academicYearId, nameKey])
   @@index([departmentId])
+  enrollments Enrollment[]
 }
 
 model Student {
@@ -98,5 +100,20 @@ model Student {
   archivedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  enrollments Enrollment[]
   @@index([name])
+}
+model Enrollment {
+  id             String       @id @default(cuid())
+  studentId      String
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classroomId    String
+  classroom      Classroom    @relation(fields: [classroomId], references: [id], onDelete: Restrict)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  @@unique([studentId, classroomId])
+  @@unique([studentId, academicYearId])
+  @@index([classroomId])
 }
