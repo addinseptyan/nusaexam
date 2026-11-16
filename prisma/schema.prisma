@@ -31,3 +31,33 @@ model AppSettings {
   sidebarColor  String   @default("#17343a")
   updatedAt     DateTime @updatedAt
 }
+
+model AcademicYear {
+  id        String       @id @default(cuid())
+  label     String       @unique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  periods   ExamPeriod[]
+}
+
+model ExamPeriod {
+  id             String       @id @default(cuid())
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  name           String
+  semester       Semester
+  description    String       @default("")
+  startDate      DateTime     @db.Date
+  endDate        DateTime     @db.Date
+  archivedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([academicYearId, semester, name])
+  @@index([startDate, endDate])
+}
+
+enum Semester {
+  GANJIL
+  GENAP
+}
