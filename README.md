@@ -40,3 +40,5 @@ Jangan unggah `.env`, data siswa, soal asli, backup, media privat atau kredensia
 - Login peserta di /ujian/login (sesi cookie terpisah); daftar ujian hanya yang ditugaskan server ke siswa tersebut.
 - Durasi dihitung dari jam mulai terjadwal dan dipotong akhir jendela: endsAt = min(startAt + durasi, endAt). Siswa telat mendapat sisa waktu sampai endsAt; lewat endsAt tidak bisa mulai (susulan lewat operator).
 - Snapshot soal per siswa (ExamAttemptItem) memuat urutan/acak pilihan dan kunci; autosave per pilihan; tanda ragu-ragu tersimpan; waktu habis dikumpulkan otomatis; nilai otomatis = benar/total x 100 (nilai akhir ditetapkan guru).
+- Monitoring (/monitoring): tabel live per pelaksanaan (polling 8 dtk) — status peserta, progres soal, tanda ragu-ragu, sisa menit, nilai; attempt kedaluwarsa dinonaktifkan otomatis saat dipantau.
+- Rekap hasil (/hasil): nilai otomatis per jenis (reguler/susulan/remidi), hasil utama = reguler, selain itu susulan dengan bendera nilai valid ganda, absen tampil kosong.

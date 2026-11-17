@@ -2,12 +2,13 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, GraduationCap, UsersRound, Settings2, Sparkles, DoorOpen, Timer, BookOpen, Activity, Printer, School, KeyRound } from "lucide-react";
+import { LayoutDashboard, CalendarDays, GraduationCap, UsersRound, Settings2, Sparkles, DoorOpen, Timer, BookOpen, Activity, Printer, School, KeyRound ,ClipboardList} from "lucide-react";
 const groups = [
  {label:"Menu utama",items:[{href:"/dashboard",label:"Dashboard",icon:LayoutDashboard}]},
  {label:"Data sekolah",items:[{href:"/periode-ujian",label:"Periode ujian",icon:CalendarDays},{href:"/kelas-jurusan",label:"Kelas & jurusan",icon:GraduationCap},{href:"/peserta",label:"Peserta",icon:UsersRound},{href:"/penempatan",label:"Penempatan kelas",icon:School}]},
  {label:"Persiapan ujian",items:[{href:"/akun-peserta",label:"Akun peserta",icon:KeyRound}]},
  {label:"Soal & tes",items:[{href:"/bank-soal",label:"Bank soal & tes",icon:BookOpen},{href:"/pelaksanaan",label:"Pelaksanaan tes",icon:Timer}]},
+ {label:"Pelaksanaan & hasil",items:[{href:"/monitoring",label:"Monitoring",icon:Activity},{href:"/hasil",label:"Rekap hasil",icon:ClipboardList}]},
  {label:"Pengaturan",items:[{href:"/pengaturan",label:"Tampilan & identitas",icon:Settings2}]},
 ];
 const soon = [
