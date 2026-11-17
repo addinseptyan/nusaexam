@@ -42,3 +42,6 @@ Jangan unggah `.env`, data siswa, soal asli, backup, media privat atau kredensia
 - Snapshot soal per siswa (ExamAttemptItem) memuat urutan/acak pilihan dan kunci; autosave per pilihan; tanda ragu-ragu tersimpan; waktu habis dikumpulkan otomatis; nilai otomatis = benar/total x 100 (nilai akhir ditetapkan guru).
 - Monitoring (/monitoring): tabel live per pelaksanaan (polling 8 dtk) — status peserta, progres soal, tanda ragu-ragu, sisa menit, nilai; attempt kedaluwarsa dinonaktifkan otomatis saat dipantau.
 - Rekap hasil (/hasil): nilai otomatis per jenis (reguler/susulan/remidi), hasil utama = reguler, selain itu susulan dengan bendera nilai valid ganda, absen tampil kosong.
+
+## Dokumen cetak (/cetak)
+Enam dokumen siap cetak berkepala sekolah dari Pengaturan: daftar peserta, kartu login (password kosong, diserahkan terpisah), daftar hadir, berita acara (ringkasan kehadiran otomatis + tabel kejadian), jadwal per periode, dan pengumuman & tata tertib. Halaman cetak bersih dari menu operator; tombol Cetak/PDF menyembunyikan diri saat print.
