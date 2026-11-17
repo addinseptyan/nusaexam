@@ -28,3 +28,12 @@ export function isSameOrigin(request: Request) {
   if (!origin || !host) return false;
   try { const u = new URL(origin); return (u.protocol === "http:" || u.protocol === "https:") && u.host === host; } catch { return false; }
 }
+export const STUDENT_COOKIE_NAME = "nusaexam_student_session";
+export async function getCurrentStudent() {
+  const token = (await cookies()).get(STUDENT_COOKIE_NAME)?.value;
+  if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
+  const session = await db.studentSession.findUnique({ where: { tokenHash: hashToken(token) }, include: { examAccount: { include: { student: true, examPeriod: true } } } });
+  if (!session || session.expiresAt <= new Date()) return null;
+  const a = session.examAccount;
+  return { sessionId: session.id, accountId: a.id, studentId: a.studentId, studentName: a.student.name, username: a.username, participantNumber: a.participantNumber, periodId: a.examPeriodId, periodName: a.examPeriod.name };
+}

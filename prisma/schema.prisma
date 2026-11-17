@@ -106,6 +106,7 @@ model Student {
   examAccounts ExamAccount[]
   @@index([name])
   testAssignments TestAssignment[]
+  examAttempts    ExamAttempt[]
 }
 model ExamAccount {
   id                String     @id @default(cuid())
@@ -119,6 +120,7 @@ model ExamAccount {
   passwordHash      String
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
+  sessions          StudentSession[]
   @@unique([examPeriodId, participantNumber])
   @@unique([examPeriodId, usernameKey])
   @@unique([studentId, examPeriodId])
@@ -210,6 +212,7 @@ model TestExecution {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   assignments     TestAssignment[]
+  attempts        ExamAttempt[]
   @@index([examPeriodId])
 }
 
@@ -222,4 +225,50 @@ model TestAssignment {
   createdAt   DateTime      @default(now())
   @@unique([executionId, studentId])
   @@index([studentId])
+}
+
+enum AttemptStatus {
+  MULAI
+  SELESAI
+}
+
+model StudentSession {
+  id            String      @id @default(cuid())
+  tokenHash     String      @unique
+  examAccountId String
+  examAccount   ExamAccount @relation(fields: [examAccountId], references: [id], onDelete: Cascade)
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
+  @@index([expiresAt])
+}
+
+model ExamAttempt {
+  id          String            @id @default(cuid())
+  executionId String
+  execution   TestExecution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status      AttemptStatus     @default(MULAI)
+  startedAt   DateTime
+  endsAt      DateTime
+  finishedAt  DateTime?
+  score       Int?
+  items       ExamAttemptItem[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  @@unique([executionId, studentId])
+  @@index([studentId])
+}
+
+model ExamAttemptItem {
+  id           String      @id @default(cuid())
+  attemptId    String
+  attempt      ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  order        Int
+  question     String
+  options      String[]
+  correctIndex Int
+  answer       Int?
+  marked       Boolean    @default(false)
+  @@unique([attemptId, order])
 }
