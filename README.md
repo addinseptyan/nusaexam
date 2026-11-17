@@ -35,3 +35,8 @@ Jangan unggah `.env`, data siswa, soal asli, backup, media privat atau kredensia
 - Impor peserta: halaman Peserta → Impor Excel (template .xlsx tersedia di dialog).
 - Impor soal: halaman Bank soal & tes → pilih bank → Impor Word (.docx). Template 50 soal (kolom No merge vertikal, 5 pilihan jawaban, sel kuning tidak perlu diisi) tersedia di dialog; baris soal yang kosong otomatis dilewati. Rumus/simbol matematika (OMML) dikonversi menjadi TeX lalu dirender MathJax (mathjax-full, dibundel lokal) menjadi gambar SVG; tabel bersarang dibaca menjadi baris teks; gambar dan SVG rumus disimpan server ke folder media (env MEDIA_DIR, bawaan <app>/media/items) dan disajikan lewat /api/media/items. Teks soal menyimpan markdown ![gambar](url) atau URL polos (data lama); komponen shared/RichText merender keduanya sebagai gambar di daftar soal dan nanti di halaman ujian.
 - Jangan jalankan seeder pada database produksi; password demo bersifat publik.
+
+## Pelaksanaan ujian siswa
+- Login peserta di /ujian/login (sesi cookie terpisah); daftar ujian hanya yang ditugaskan server ke siswa tersebut.
+- Durasi dihitung dari jam mulai terjadwal dan dipotong akhir jendela: endsAt = min(startAt + durasi, endAt). Siswa telat mendapat sisa waktu sampai endsAt; lewat endsAt tidak bisa mulai (susulan lewat operator).
+- Snapshot soal per siswa (ExamAttemptItem) memuat urutan/acak pilihan dan kunci; autosave per pilihan; tanda ragu-ragu tersimpan; waktu habis dikumpulkan otomatis; nilai otomatis = benar/total x 100 (nilai akhir ditetapkan guru).
