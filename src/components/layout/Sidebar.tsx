@@ -8,7 +8,7 @@ const groups = [
  {label:"Data sekolah",items:[{href:"/periode-ujian",label:"Periode ujian",icon:CalendarDays},{href:"/kelas-jurusan",label:"Kelas & jurusan",icon:GraduationCap},{href:"/peserta",label:"Peserta",icon:UsersRound},{href:"/penempatan",label:"Penempatan kelas",icon:School}]},
  {label:"Persiapan ujian",items:[{href:"/akun-peserta",label:"Akun peserta",icon:KeyRound}]},
  {label:"Soal & tes",items:[{href:"/bank-soal",label:"Bank soal & tes",icon:BookOpen},{href:"/pelaksanaan",label:"Pelaksanaan tes",icon:Timer}]},
- {label:"Pelaksanaan & hasil",items:[{href:"/monitoring",label:"Monitoring",icon:Activity},{href:"/hasil",label:"Rekap hasil",icon:ClipboardList}]},
+ {label:"Pelaksanaan & hasil",items:[{href:"/monitoring",label:"Monitoring",icon:Activity},{href:"/hasil",label:"Rekap hasil",icon:ClipboardList},{href:"/cetak",label:"Dokumen cetak",icon:Printer}]},
  {label:"Pengaturan",items:[{href:"/pengaturan",label:"Tampilan & identitas",icon:Settings2}]},
 ];
 const soon = [
