@@ -107,6 +107,7 @@ model Student {
   @@index([name])
   testAssignments TestAssignment[]
   examAttempts    ExamAttempt[]
+  finalGrades     FinalGrade[]
 }
 model ExamAccount {
   id                String     @id @default(cuid())
@@ -157,6 +158,7 @@ model Test {
   updatedAt   DateTime        @updatedAt
   banks       TestBank[]
   executions  TestExecution[]
+  finalGrades FinalGrade[]
 }
 
 model QuestionBank {
@@ -271,4 +273,17 @@ model ExamAttemptItem {
   answer       Int?
   marked       Boolean    @default(false)
   @@unique([attemptId, order])
+}
+
+model FinalGrade {
+  id        String   @id @default(cuid())
+  testId    String
+  test      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score     Int?
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([testId, studentId])
 }

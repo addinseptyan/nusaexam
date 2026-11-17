@@ -26,9 +26,11 @@ export async function GET(request: Request) {
       else row.remidi = at.score;
     }
   }
+  const finals = await db.finalGrade.findMany({ where: { testId } });
+  const finalBy = new Map(finals.map(f => [f.studentId, f]));
   const rows = [...map.values()].map(r => {
     const main = r.reguler ?? r.susulan;
-    return { ...r, main, flag: r.reguler !== null && r.susulan !== null };
+    return { ...r, main, flag: r.reguler !== null && r.susulan !== null, final: finalBy.get(r.studentId)?.score ?? null };
   }).sort((a, b) => a.name.localeCompare(b.name, "id"));
   return NextResponse.json({ ok: true, test: { id: test.id, title: test.title }, rows });
 }
