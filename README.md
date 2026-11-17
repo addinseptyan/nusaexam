@@ -45,3 +45,8 @@ Jangan unggah `.env`, data siswa, soal asli, backup, media privat atau kredensia
 
 ## Dokumen cetak (/cetak)
 Enam dokumen siap cetak berkepala sekolah dari Pengaturan: daftar peserta, kartu login (password kosong, diserahkan terpisah), daftar hadir, berita acara (ringkasan kehadiran otomatis + tabel kejadian), jadwal per periode, dan pengumuman & tata tertib. Halaman cetak bersih dari menu operator; tombol Cetak/PDF menyembunyikan diri saat print.
+
+## Nilai akhir, backup, dan load test
+- Rekap hasil (/hasil) menyediakan kolom nilai akhir guru (0-100, tersimpan per tes & peserta) di samping nilai otomatis.
+- Backup & restore (/backup): berkas JSON seluruh tabel di folder backup/ (env BACKUP_DIR); restore menyeluruh dengan konfirmasi. Backup terjadwal tanpa login: Task Scheduler Windows menjalankan `node scripts/backup-now.mjs` (mis. harian 21:00: schtasks /Create /TN NusaExamBackup /SC DAILY /ST 21:00 /TR "node C:\NusaExam\app\scripts\backup-now.mjs").
+- Load test: `node scripts/loadtest.mjs http://localhost:3000 p2601-0001,p2601-0002,... demo12345 10` mensimulasikan login, mulai ujian, autosave tiap soal, dan selesai secara konkuren; melaporkan p50/p95 latensi autosave. Sasaran sekolah: 40 PC simultan nyaman bila p95 autosave < 300 ms pada build produksi (`npm run build` lalu `npm start`).
